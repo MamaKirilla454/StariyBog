@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Нескінченне літо: Topson Edition</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    font-family: Georgia, serif;
+    overflow: hidden;
+    color: white;
+}
+
+#game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #111;
+}
+
+.background {
+    position: absolute;
+    inset: 0;
+    background-image: url("image-1024.png");
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    transition: opacity 1s;
+}
+
+.character {
+    position: absolute;
+    bottom: 12%;
+    height: 78%;
+    width: 48%;
+    max-width: 48%;
+    object-fit: contain;
+    object-position: bottom;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    mix-blend-mode: normal;
+    filter: none;
+}
+
+.character.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#none {
+    left: 2%;
+    scale: 0.8; /* подгони размер силуэта: 1.1 = больше, 0.9 = меньше */
+    transform-origin: bottom center;
+}
+
+#oldgod {
+    right: 2%;
+    scale: 0.8;
+    transform-origin: bottom center;
+}
+
+.name {
+    position: absolute;
+    bottom: 20%;
+    left: 9%;
+    padding: 7px 20px;
+    background: rgba(15,25,20,0.9);
+    border: 1px solid rgba(255,255,255,0.3);
+    font-size: 19px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.dialogue {
+    position: absolute;
+    bottom: 2%;
+    left: 5%;
+    width: 90%;
+    min-height: 16%;
+    padding: 18px 22px;
+    background: rgba(0,0,0,0.82);
+    border: 1px solid rgba(180,190,140,0.65);
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+.dialogue-name {
+    color: #b4d58a;
+    font-size: 17px;
+    margin-bottom: 8px;
+}
+
+.dialogue-text {
+    font-size: 19px;
+    line-height: 1.5;
+}
+
+.hint {
+    position: absolute;
+    right: 15px;
+    bottom: 8px;
+    font-size: 11px;
+    color: #aaa;
+}
+
+.choices {
+    position: absolute;
+    top: 35%;
+    left: 20%;
+    width: 60%;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.choice {
+    background: rgba(15,25,20,0.94);
+    color: white;
+    border: 1px solid #9cbd83;
+    padding: 17px;
+    font-family: Georgia, serif;
+    font-size: 17px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.choice:hover {
+    background: rgba(80,110,70,0.95);
+    transform: scale(1.02);
+}
+
+#start {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(0,0,0,0.75);
+}
+
+#start h1 {
+    font-size: clamp(30px, 5vw, 55px);
+    text-align: center;
+    color: #d3e4b0;
+    text-shadow: 0 0 20px #78945d;
+    margin-bottom: 20px;
+}
+
+#start button {
+    padding: 15px 50px;
+    background: #526d49;
+    color: white;
+    border: 1px solid #c0d6a4;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+#start button:hover {
+    background: #779b65;
+}
+
+.fade {
+    animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media(max-width:600px) {
+    .character {
+        height: 58%;
+        width: 55%;
+        max-width: 55%;
+        bottom: 19%;
+    }
+
+    .dialogue {
+        min-height: 22%;
+        bottom: 1%;
+    }
+
+    .dialogue-text {
+        font-size: 16px;
+    }
+
+    .name {
+        bottom: 24%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div class="background" id="background"></div>
+
+    <img src="Nix.png" class="character" id="none">
+    <img src="image-removebg-preview.png" class="character" id="oldgod">
+
+    <div class="name" id="name"></div>
+
+    <div class="choices" id="choices"></div>
+
+    <div class="dialogue" id="dialogue">
+        <div class="dialogue-name" id="speaker">...</div>
+        <div class="dialogue-text" id="text">...</div>
+        <div class="hint">Натисни щоб продовжити ▼</div>
+    </div>
+
+    <div id="start">
+        <h1>Старий бог <br>Походження</h1>
+        <button onclick="startGame()">Почати Гру</button>
+    </div>
+
+</div>
+
+<script>
+const scenes = [
+    {
+        character: "none",
+        speaker: "Nix",
+        text: "Привіт! Розкажи трохи про себе. Звідки ти родом і як почалася твоя історія?",
+        next: 1
+    },
+    {
+        character: "oldgod",
+        speaker: "Старий Бог",
+        text: "Привіт! Мене звати Владислав Левенець. Я народився 7 серпня 1999 року в місті Кривий Ріг. Мій нікнейм «Старий Бог» з’явився не випадково — його колись придумав мій батько, і з часом він став невід’ємною частиною мого образу в інтернеті.",
+        next: 2
+    },
+    {
+        character: "none",
+        speaker: "Nix",
+        text: "А як ти взагалі познайомився з Dota 2?",
+        next: 3
+    },
+    {
+        character: "oldgod",
+        speaker: "Старий Бог",
+        text: "Усе почалося приблизно у 2012 році. До цього я грав у World of Tanks, але згодом мені захотілося спробувати щось нове. Так я відкрив для себе Dota 2. Спочатку це було звичайне захоплення, але з часом гра перетворилася на щось набагато більше.",
+        next: 4
+    },
+    {
+        character: "none",
+        speaker: "Nix",
+        text: "Коли ти вирішив почати стримити?",
+        next: 5
+    },
+    {
+        character: "oldgod",
+        speaker: "Старий Бог",
+        text: "Стримити я почав у 2018 році. Спочатку це було просто хобі, можливість ділитися своїм ігровим досвідом та спілкуватися з людьми. Але поступово аудиторія почала зростати, і мене стали впізнавати серед гравців Dota 2.",
+        next: 6
+    },
+    {
+        character: "none",
+        speaker: "Nix",
+        text: "Чим ти найбільше запам’ятався глядачам?",
+        next: 7
+    },
+    {
+        character: "oldgod",
+        speaker: "Старий Бог",
+        text: "Напевно, своєю грою на мідлейні. Я багато грав на незвичайних для інших героях, особливо на Io та Tinker. Завдяки великій кількості матчів, високому MMR та власному стилю гри я поступово здобув популярність у спільноті.",
+        next: 8
+    },
+    {
+        character: "none",
+        speaker: "Nix",
+        text: "Чи очікував ти, що звичайне захоплення грою переросте у таку популярність?",
+        next: 9
+    },
+    {
+        character: "oldgod",
+        speaker: "Старий Бог",
+        text: "Чесно кажучи, ні. Я просто займався тим, що мені подобалося. Думаю, головне — не боятися розвиватися, експериментувати та залишатися собою.",
+        next: 10
+    },
+    {
+        character: "none",
+        speaker: "Nix",
+        text: "Що б ти порадив людям, які тільки починають свій шлях у Dota 2?",
+        next: 11
+    },
+    {
+        character: "oldgod",
+        speaker: "Старий Бог",
+        text: "Не здавайтеся після поразок, аналізуйте власні помилки та постійно вдосконалюйтеся. І найголовніше — отримуйте задоволення від гри, адже саме з цього все починається.",
+        next: 0
+    }
+];
+
+let currentScene = 0;
+let isStarted = false;
+
+const dialogue = document.getElementById("dialogue");
+const speaker = document.getElementById("speaker");
+const text = document.getElementById("text");
+const choices = document.getElementById("choices");
+
+const sprites = {
+    none: document.getElementById("none"),
+    oldgod: document.getElementById("oldgod")
+};
+
+function startGame() {
+    document.getElementById("start").style.display = "none";
+    isStarted = true;
+    showScene(0);
+}
+
+function showScene(index) {
+    currentScene = index;
+
+    const scene = scenes[index];
+    if (!scene) return;
+
+    choices.style.display = "none";
+    choices.innerHTML = "";
+
+    Object.values(sprites).forEach(img => img.classList.remove("show"));
+
+    document.getElementById("name").style.opacity = 0;
+
+    setTimeout(() => {
+        const sprite = sprites[scene.character];
+        if (sprite) sprite.classList.add("show");
+    }, 150);
+
+    speaker.textContent = scene.speaker;
+    text.textContent = scene.text;
+
+    dialogue.classList.remove("fade");
+    void dialogue.offsetWidth;
+    dialogue.classList.add("fade");
+
+    if (scene.choices) {
+        dialogue.onclick = null;
+
+        choices.style.display = "flex";
+
+        scene.choices.forEach(choice => {
+            const button = document.createElement("button");
+
+            button.className = "choice";
+            button.textContent = choice.text;
+
+            button.onclick = () => {
+                showScene(choice.next);
+            };
+
+            choices.appendChild(button);
+        });
+
+    } else {
+        dialogue.onclick = () => {
+            showScene(scene.next);
+        };
+    }
+}
+
+document.addEventListener("keydown", event => {
+    if (
+        event.code === "Space" &&
+        isStarted &&
+        !scenes[currentScene].choices
+    ) {
+        event.preventDefault();
+        showScene(scenes[currentScene].next);
+    }
+});
+</script>
+
+</body>
+</html>
