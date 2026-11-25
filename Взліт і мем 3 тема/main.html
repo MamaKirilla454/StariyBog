@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СТАРИЙ БОГ</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;font-family:Georgia,serif;overflow:hidden;color:white}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden;background:#111}
+.background{position:absolute;inset:0;background:url("background.png") center/cover no-repeat;transition:opacity 1s}
+.background::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.12)}
+.character{position:absolute;bottom:12%;height:78%;max-width:48%;object-fit:contain;object-position:bottom;opacity:0;transform:translateY(30px);transition:all .6s ease;mix-blend-mode:screen}
+.character.show{opacity:1;transform:translateY(0)}
+#topson{left:8%}
+#oldgod{right:7%}
+.name{position:absolute;bottom:20%;left:9%;padding:7px 20px;background:rgba(15,25,20,.9);border:1px solid rgba(255,255,255,.3);font-size:19px;opacity:0;transition:opacity .3s}
+.dialogue{position:absolute;bottom:2%;left:5%;width:90%;min-height:16%;padding:18px 22px;background:rgba(0,0,0,.82);border:1px solid rgba(180,190,140,.65);border-radius:5px;cursor:pointer;box-shadow:0 0 15px rgba(0,0,0,.5)}
+.dialogue-name{color:#b4d58a;font-size:17px;margin-bottom:8px}
+.dialogue-text{font-size:19px;line-height:1.5}
+.hint{position:absolute;right:15px;bottom:8px;font-size:11px;color:#aaa}
+.choices{position:absolute;top:35%;left:20%;width:60%;display:none;flex-direction:column;gap:12px}
+.choice{background:rgba(15,25,20,.94);color:white;border:1px solid #9cbd83;padding:17px;font-family:Georgia,serif;font-size:17px;cursor:pointer;transition:.3s}
+.choice:hover{background:rgba(80,110,70,.95);transform:scale(1.02)}
+#start{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,0,0,.75)}
+#start h1{font-size:clamp(30px,5vw,55px);text-align:center;color:#d3e4b0;text-shadow:0 0 20px #78945d;margin-bottom:20px}
+#start button{padding:15px 50px;background:#526d49;color:white;border:1px solid #c0d6a4;font-size:20px;cursor:pointer}
+#start button:hover{background:#779b65}
+.fade{animation:fadeIn 1s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#game.stream .character{mix-blend-mode:normal}
+#game.stream #topson{left:50%;right:auto;height:64%;max-width:70%;bottom:17%;transform:translate(-50%,30px)}
+#game.stream #topson.show{transform:translate(-50%,0)}
+#game.stream #oldgod{display:none}
+.live{position:absolute;top:14px;left:16px;z-index:5;display:none;align-items:center;gap:8px;padding:5px 12px;background:#e91916;border-radius:3px;font:700 14px/1 Arial,sans-serif;letter-spacing:.5px}
+.live i{width:8px;height:8px;border-radius:50%;background:#fff}
+#game.stream .live{display:flex}
+.donate{position:absolute;top:3%;left:50%;z-index:6;width:min(440px,86%);padding:14px 18px 16px;text-align:center;background:rgba(24,24,27,.92);border:2px solid #9147ff;border-radius:8px;box-shadow:0 0 24px rgba(145,71,255,.45);font-family:Arial,sans-serif;opacity:0;pointer-events:none;transform:translate(-50%,-20px) scale(.92);transition:opacity .35s,transform .35s}
+.donate.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.donate-img{display:block;margin:0 auto 10px;max-width:100%;max-height:18vh;border-radius:4px;object-fit:contain}
+.donate-title{font-size:20px;font-weight:700;color:#fff}
+.donate-title b{color:#bf94ff}
+.donate-title span{color:#00e6cb}
+.donate-text{margin-top:6px;font-size:18px;line-height:1.35;color:#efeff1;word-break:break-word}
+#game.stream #topson.flexing{animation:flexPulse 1.1s ease-out;filter:drop-shadow(0 0 22px rgba(255,200,80,.75))}
+@keyframes flexPulse{0%{scale:1}30%{scale:1.09}60%{scale:1.03}100%{scale:1}}
+.cam{position:absolute;inset:0;z-index:1;display:none;pointer-events:none;box-shadow:inset 0 0 140px rgba(0,0,0,.35)}
+#game.stream .cam{display:block}
+.cam i{position:absolute;width:30px;height:30px;border:0 solid rgba(255,255,255,.4)}
+.cam .tl{top:14px;left:14px;border-width:2px 0 0 2px}
+.cam .tr{top:14px;right:14px;border-width:2px 2px 0 0}
+.cam .bl{bottom:14px;left:14px;border-width:0 0 2px 2px}
+.cam .br{bottom:14px;right:14px;border-width:0 2px 2px 0}
+.cam .rec{position:absolute;top:24px;right:56px;font:700 12px/1 Arial,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.65)}
+.cam .rec::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#e91916;animation:recBlink 2s steps(1) infinite}
+@keyframes recBlink{50%{opacity:.25}}
+@media(max-width:600px){
+.cam i{width:22px;height:22px}
+.donate-title{font-size:16px}
+.donate-text{font-size:15px}
+.donate-img{max-height:12vh}
+.character{height:58%;max-width:55%;bottom:19%}
+.dialogue{min-height:22%;bottom:1%}
+.dialogue-text{font-size:16px}
+.name{bottom:24%}
+}
+</style>
+</head>
+<body>
+<div id="game">
+<div class="background" id="background"></div>
+<audio id="voice" preload="auto"></audio>
+<div class="cam">
+<i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
+<span class="rec">REC</span>
+</div>
+<img src="image-removebg-preview (1).png" class="character" id="topson">
+<img src="image-removebg-preview.png" class="character" id="oldgod">
+<div class="live"><i></i>LIVE</div>
+<div class="donate" id="donate">
+<img class="donate-img" id="donateImg" alt="">
+<div class="donate-title" id="donateTitle"></div>
+<div class="donate-text" id="donateText"></div>
+</div>
+<div class="name" id="name"></div>
+<div class="choices" id="choices"></div>
+<div class="dialogue" id="dialogue">
+<div class="dialogue-name" id="speaker">...</div>
+<div class="dialogue-text" id="text">...</div>
+<div class="hint">Натисніть, щоб продовжити ▼</div>
+</div>
+<div id="start">
+<h1>СТАРИЙ БОГ<br>ЗЛІТ І МЕМИ</h1>
+<button onclick="startGame()">ПОЧАТИ ГРУ</button>
+</div>
+</div>
+
+<script>
+const scenes=[
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"Так, вмикаю стрім... Чат, мене чути? Картинка є? Нормально, нормально. Всім привіт, хто зайшов, влаштовуйтесь.",
+Audio:"[Старый бог ]Так, ......тесь..mp3",
+pic:"37e673d8-cc1a-4374-9400-c6574aef8ace.png",next:1
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"Ого, перший же донат, а я навіть привітатися нормально не встиг. Чувак, зачекай, зараз прочитаю.",
+Audio:"[Старый бог ]Ого, ......итаю..mp3",
+pic:"image-removebg-preview (2).png",
+donate:{user:"Viewer123",amount:"5 $",text:"Покажи біцуху, Старий Бог!",img:"donate1.png"},next:2
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"Та ну... реально, кожен стрім із цього починається. Ну добре, давай, один раз. Ось. Старий Бог. Все, досить, я не безкоштовний.",
+Audio:"[Старый бог ]Та ну......вний..mp3",
+pic:"0563c29f-c2d9-4abb-9a03-459a56d6789a-removebg-preview.png",flex:true,next:3
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"Я досі не розумію, як це взагалі злетіло. Звичайний стрім, звичайні біцухи, нічого особливого. А потім бац — і я мем.",
+Audio:"[Старый бог ]Я дос...... мем..mp3",
+pic:"image-removebg-preview (1).png",next:4
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"Пам'ятаю, Spirit виграли PGL Wallachia, і Ларл просто в інтерв'ю показав біцепс і сказав: «Старий Бог». Все. Прокидаюсь, а в мене телефон горить.",
+Audio:"[Старый бог ]Пам'я......рить..mp3",
+pic:"325d4acf-cf0f-4051-9d81-93f79da57d71.png",next:5
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"Читаю чат. Тут пишуть, що Ларл біцуху показав. Чат, я бачив, бачив! Ви мені це вже разів двадцять скинули.",
+Audio:"[Старый бог ]Читаю......нули..mp3",
+pic:"96ecbf36-f410-4e81-a2d1-f9eb9d981d7f.png",
+donate:{user:"Spirit_Fan",amount:"10 $",text:"Ларл показав біцуху, ти бачив?! СТАРИЙ БОГ!",img:"image-removebg-preview (8).png"},next:6
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"А потім вони всі почали це повторювати. Корбен, Міпошка, усі підряд. Навіть у своїх влогах. Нормально, нормально, хлопці, я не проти.",
+Audio:"[Старый бог ]А пот......роти..mp3",
+pic:"2ccde0ea-85ac-40ca-964d-02e5160c3a4e.png",next:7
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"А в мене в чаті з першої хвилини одне й те саме. «СТАРИЙ БОГ», «СТАРИЙ БОГ», і так весь стрім. Я вас люблю, але модери вже втомилися, реально.",
+Audio:"[Старый бог ]А в м......льно..mp3",
+pic:"1d30e154-6ce4-4e11-a613-1bd14aef44e7.png",next:8
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"А в тіктоку що робиться! Чувак, люди показують біцепс і волають моє прізвисько. Я не знаю, сміятися мені чи нік міняти.",
+Audio:"[Старый бог ]А в т......няти..mp3",
+pic:"f7d34add-c121-4322-a022-5c361715dcf6.png",
+donate:{user:"TikTok_Kid",amount:"3 $",text:"Мамо, я теж Старий Бог!",img:"163b2bd4-1838-42d8-8540-1b01fc16960a.png"},next:9
+},
+{
+stream:true,character:"oldgod",speaker:"Старий Бог",
+text:"Добре. Це вже не просто мем, це якийсь символ Доти. А я просто стример. Давайте гру шукати, чат. Погнали.",
+Audio:"[Старый бог ]Добре......нали..mp3",
+pic:"image-removebg-preview (9).png",next:1
+}
+];
+
+const STREAM_IMG="image-removebg-preview.png";
+const STREAM_BG="Gemini_Generated_Image_jy8k48jy8k48jy8k.jpg";
+let currentScene=0,isStarted=false;
+
+const dialogue=document.getElementById("dialogue");
+const speaker=document.getElementById("speaker");
+const text=document.getElementById("text");
+const choices=document.getElementById("choices");
+const voice=document.getElementById("voice");
+
+function startGame(){
+document.getElementById("start").style.display="none";
+isStarted=true;
+showScene(0);
+}
+
+function showDonate(d){
+const box=document.getElementById("donate");
+box.classList.remove("show");
+if(!d)return;
+const img=document.getElementById("donateImg");
+img.style.display=d.img?"block":"none";
+if(d.img)img.src=d.img;
+const title=document.getElementById("donateTitle");
+title.innerHTML="";
+const u=document.createElement("b");
+u.textContent=d.user;
+const a=document.createElement("span");
+a.textContent=d.amount;
+title.append(u," задонатив ",a,"!");
+document.getElementById("donateText").textContent=d.text||"";
+setTimeout(()=>box.classList.add("show"),200);
+}
+
+function showScene(index){
+currentScene=index;
+const scene=scenes[index];
+
+voice.pause();
+voice.currentTime=0;
+voice.removeAttribute("src");
+voice.load();
+
+if(scene.Audio){
+voice.src=scene.Audio;
+voice.play().catch(error=>console.log("Звук не воспроизведён:",error));
+}
+
+choices.style.display="none";
+choices.innerHTML="";
+
+const topson=document.getElementById("topson");
+const game=document.getElementById("game");
+const bg=document.getElementById("background");
+
+if(!topson.dataset.orig)topson.dataset.orig=topson.getAttribute("src");
+
+game.classList.toggle("stream",!!scene.stream);
+bg.style.backgroundImage=scene.stream?`url("${STREAM_BG}"), url("background.png")`:"";
+
+const fallback=scene.stream?STREAM_IMG:topson.dataset.orig;
+topson.onerror=()=>{topson.onerror=null;topson.src=fallback};
+topson.src=scene.stream?(scene.pic||STREAM_IMG):topson.dataset.orig;
+
+showDonate(scene.donate);
+
+const oldgod=document.getElementById("oldgod");
+topson.classList.remove("show");
+oldgod.classList.remove("show");
+document.getElementById("name").style.opacity=0;
+
+setTimeout(()=>{
+const who=scene.stream?"topson":scene.character;
+if(who==="topson")topson.classList.add("show");
+if(who==="oldgod")oldgod.classList.add("show");
+topson.classList.toggle("flexing",!!scene.flex);
+if(scene.character==="none"){
+topson.classList.remove("show");
+oldgod.classList.remove("show");
+}
+},150);
+
+speaker.textContent=scene.speaker;
+text.textContent=scene.text;
+
+dialogue.classList.remove("fade");
+void dialogue.offsetWidth;
+dialogue.classList.add("fade");
+
+if(scene.choices){
+dialogue.onclick=null;
+choices.style.display="flex";
+scene.choices.forEach(choice=>{
+const button=document.createElement("button");
+button.className="choice";
+button.textContent=choice.text;
+button.onclick=()=>showScene(choice.next);
+choices.appendChild(button);
+});
+}else{
+dialogue.onclick=()=>showScene(scene.next);
+}
+}
+
+document.addEventListener("keydown",event=>{
+if(event.code==="Space"&&isStarted&&!scenes[currentScene].choices){
+event.preventDefault();
+showScene(scenes[currentScene].next);
+}
+});
+</script>
+</body>
+</html>
